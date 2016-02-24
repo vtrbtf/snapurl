@@ -1,12 +1,12 @@
 package main
 
 import (
- // "os"
+  "os"
   "net/http"
   "github.com/julienschmidt/httprouter" 
   "fmt"
   "io/ioutil"
-
+  "encoding/base64"
 )
 
 
@@ -16,25 +16,38 @@ func main() {
   r.Handler("GET", "/", http.FileServer(http.Dir("public")))
 
   r.POST("/goshort", GoShort)
-  //r.GET("/r/:id", Redirect)
+  r.GET("/r/:id", Redirect)
 
   http.ListenAndServe(":" + GetPort(), r)
 }
 
 func GetPort() string {  
- return "8080" 
+  port := os.Getenv("PORT")
+  if port == "" {
+    port = "8080"
+  }
+  return port
+}
+
+func Redirect( rw http.ResponseWriter, r *http.Request, p httprouter.Params )  {
+  dat, err := ioutil.ReadFile("_r/" + p.ByName("id"))
+
+  if err != nil {
+    panic(err)
+  }
+
+  http.Redirect(rw, r, string(dat[:]), 301)
 }
 
 
 func HashUrl( url string ) string {  
- return "123"
+  return base64.StdEncoding.EncodeToString([]byte(url))
 }
 
 func GoShort(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
   
   url := r.FormValue("inputUrl")
   urlBytes := []byte(r.FormValue("inputUrl"))
-  fmt.Println(url)
   err := ioutil.WriteFile("_r/" + HashUrl( url ), urlBytes, 0644)
 
   if err != nil  {
