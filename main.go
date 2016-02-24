@@ -48,12 +48,17 @@ func GoShort(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
   
   url := r.FormValue("inputUrl")
   urlBytes := []byte(r.FormValue("inputUrl"))
-  err := ioutil.WriteFile("_r/" + HashUrl( url ), urlBytes, 0644)
+
+  hash := HashUrl( url )
+  dir := "_r"
+  path := dir + "/" + hash 
+
+  err := ioutil.WriteFile( path , urlBytes, 0644)
 
   if err != nil  {
     panic( err ) 
   }
 
-  fmt.Fprintln( rw , "Created :) ")
+  fmt.Fprintln( rw , path)
 }
 
