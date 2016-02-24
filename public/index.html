@@ -15,16 +15,28 @@
   <body>
 
     <div class="container">
+      <div class="page-title">
+        <h1>SnapUrl</h1>
+        <p class="lead">Shortner with limits :) </p>
+        <hr />
+      </div>
 
-      <form class="form-signin" method="POST" action="/goshort">
-        <label for="inputUrl" class="sr-only">Url address</label>
-        <input type="url" id="inputUrl" name="inputUrl" class="form-control" placeholder="Url address" required autofocus>
+      <form method="POST" action="/goshort">
+        
+        <div class="form-group">
+          <label for="inputUrl" class="sr-only">Url address</label>
+          <input type="url" id="inputUrl" name="inputUrl" class="form-control" placeholder="Url address" required autofocus>
+        </div>
 
-        <label for="inputTime" class="sr-only">Time</label>
-        <input type="number" id="inputTime" class="form-control" placeholder="Time" required>
+        <div class="form-group">
+          <label for="inputTime" class="sr-only">Time</label>
+          <input type="number" id="inputTime" class="form-control" placeholder="Time" required>
+        </div>
 
-        <label for="inputMax" class="sr-only">Max</label>
-        <input type="number" id="inputMax" class="form-control" placeholder="Max" required>
+        <div class="form-group">
+          <label for="inputMax" class="sr-only">Max</label>
+          <input type="number" id="inputMax" class="form-control" placeholder="Max" required>
+        </div>
 
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
       </form>
