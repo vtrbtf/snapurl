@@ -2,11 +2,14 @@ package main
 
 import (
   "os"
+  "time"
   "net/http"
   "github.com/julienschmidt/httprouter" 
   "fmt"
   "io/ioutil"
   "encoding/base64"
+  "strconv"
+
 )
 
 
@@ -36,27 +39,35 @@ func Redirect( rw http.ResponseWriter, r *http.Request, p httprouter.Params )  {
     panic(err)
   }
 
+  split := strings.Split(dat, "#")
+  sec, _ := strconv.ParseInt(split[0], 16, 32)
+  URI := split[1]
+  
+  if  time.Now().Unix()
   http.Redirect(rw, r, string(dat[:]), 301)
 }
 
 
-func HashUrl( url string ) string {  
-  return base64.StdEncoding.EncodeToString([]byte(url))
+func HashUrl( url string , unixTime int64 ) string {  
+  return base64.StdEncoding.EncodeToString([]byte(url + string(unixTime)))
 }
 
 func GoShort(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
   
   url := r.FormValue("inputUrl")
-  urlBytes := []byte(r.FormValue("inputUrl"))
+  secs := r.FormValue("inputTime")
+  secHEX, _ := strconv.Atoi(secs)   
+  urlBytes := []byte(strconv.FormatInt(int64(secHEX), 16) + "#" + r.FormValue("inputUrl"))
 
-  hash := HashUrl( url )
+  unixTime := time.Now().Unix() 
+  hash := HashUrl( url , unixTime )
   dir := "_r"
   path := dir + "/" + hash 
 
-  err := ioutil.WriteFile( path , urlBytes, 0644)
+  ioerr := ioutil.WriteFile( path , urlBytes, 0644)
 
-  if err != nil  {
-    panic( err ) 
+  if ioerr != nil  {
+    panic( ioerr ) 
   }
 
   fmt.Fprintln( rw , path)
