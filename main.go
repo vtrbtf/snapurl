@@ -7,9 +7,9 @@ import (
   "github.com/julienschmidt/httprouter" 
   "fmt"
   "io/ioutil"
-  "encoding/base64"
   "strconv"
-
+  "strings"
+  "crypto/sha1"
 )
 
 
@@ -33,23 +33,36 @@ func GetPort() string {
 }
 
 func Redirect( rw http.ResponseWriter, r *http.Request, p httprouter.Params )  {
-  dat, err := ioutil.ReadFile("_r/" + p.ByName("id"))
+  filePath := "_r/" + p.ByName("id")
+  fileContentAsBytes, err := ioutil.ReadFile( filePath )
+  fileContent := string(fileContentAsBytes)
+  info, statErr := os.Stat(filePath)
 
-  if err != nil {
+  if err != nil || statErr != nil {
     panic(err)
   }
 
-  split := strings.Split(dat, "#")
-  sec, _ := strconv.ParseInt(split[0], 16, 32)
+  split := strings.Split(fileContent, "#")
+  sec, parseError := strconv.ParseInt(split[0], 16, 32)
+  if parseError != nil {
+    panic(parseError) 
+  }
   URI := split[1]
   
-  if  time.Now().Unix()
-  http.Redirect(rw, r, string(dat[:]), 301)
+  if (( info.ModTime().Unix() + sec ) - time.Now().Unix()) >= 0 { 
+    http.Redirect(rw, r, URI, 302)
+  } else {
+    fmt.Fprintln(rw, "Timeout :) ")
+  } 
 }
 
 
 func HashUrl( url string , unixTime int64 ) string {  
-  return base64.StdEncoding.EncodeToString([]byte(url + string(unixTime)))
+  h := sha1.New()
+  h.Write([]byte(url + string(unixTime)))
+  hash := h.Sum(nil) 
+  return fmt.Sprintf("%x", hash)[:10]
+
 }
 
 func GoShort(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
@@ -57,7 +70,9 @@ func GoShort(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
   url := r.FormValue("inputUrl")
   secs := r.FormValue("inputTime")
   secHEX, _ := strconv.Atoi(secs)   
-  urlBytes := []byte(strconv.FormatInt(int64(secHEX), 16) + "#" + r.FormValue("inputUrl"))
+  secondsHash := strconv.FormatInt(int64(secHEX), 16)
+
+  urlBytes := []byte( secondsHash + "#" + r.FormValue("inputUrl"))
 
   unixTime := time.Now().Unix() 
   hash := HashUrl( url , unixTime )
@@ -70,6 +85,6 @@ func GoShort(rw http.ResponseWriter, r *http.Request, p httprouter.Params) {
     panic( ioerr ) 
   }
 
-  fmt.Fprintln( rw , path)
+  fmt.Fprintln( rw , "http://su.apps.vtrbtf.com/r/" + hash)
 }
 
